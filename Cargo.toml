@@ -1,0 +1,10 @@
+[package]
+name = "swatch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+adobe-swatch-exchange = "2.0.2"
+eframe = "0.28.1"
+egui = "0.28.1"
+rfd = "0.14.1"
