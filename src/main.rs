@@ -150,23 +150,28 @@ impl eframe::App for App {
             }
         });
 
-        // Helper to render the "Add New" button and return its response
-        let add_new_color_block_button = |ui: &mut egui::Ui| {
-            ui.add_sized(
+        // Since we want to render both groups and ungrouped, define a helper
+        //  that can render the UI for a Vec<ColorBlock>
+        let render_vec_of_color = |ui: &mut egui::Ui, vec: &mut Vec<ColorBlock>| {
+            for block in vec.iter_mut() {
+                ui.add_sized((108.0, 130.0), color_block(block));
+            }
+
+            // Show a "New" button to add a color to this vec
+            let resp = ui.add_sized(
                 egui::Vec2 { x: 100.0, y: 100.0 },
                 egui::Button::new("Add New"),
-            )
-        };
+            );
 
-        // Helper to create a new color block
-        let new_color_block = || {
-            ColorBlock::new(
-                "new".to_string(),
-                ColorValue::Rgb(1., 1., 1.),
-                ColorType::Normal,
-            )
+            // If the button is clicked, push a new color onto the vec
+            if resp.clicked() {
+                vec.push(ColorBlock::new(
+                    "new".to_string(),
+                    ColorValue::Rgb(1., 1., 1.),
+                    ColorType::Normal,
+                ));
+            }
         };
-        let block_size = (108.0, 130.0);
 
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
@@ -174,22 +179,11 @@ impl eframe::App for App {
                     // Render each group as a collapsible frame
                     for group in self.groups.iter_mut() {
                         ui.collapsing(&group.name, |ui| {
-                            for block in group.blocks.iter_mut() {
-                                ui.add_sized(block_size, color_block(block));
-                            }
-
-                            if add_new_color_block_button(ui).clicked() {
-                                group.blocks.push(new_color_block());
-                            }
+                            render_vec_of_color(ui, &mut group.blocks);
                         });
                     }
                     // Render all ungrouped
-                    for block in self.ungrouped.iter_mut() {
-                        ui.add_sized(block_size, color_block(block));
-                    }
-                    if add_new_color_block_button(ui).clicked() {
-                        self.ungrouped.push(new_color_block());
-                    }
+                    render_vec_of_color(ui, &mut self.ungrouped);
                 });
             });
         });
