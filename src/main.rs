@@ -65,10 +65,24 @@ impl App {
 
     fn set_save_path(&mut self) {
         // Prompt for a path
-        self.save_path = FileDialog::new()
+        let mut dlg = FileDialog::new()
             .add_filter("Adobe Swatch Exchange", &["ase"])
-            .set_file_name("colors.ase")
-            .save_file();
+            .set_file_name("colors.ase");
+
+        // Try to initialize the Save As window:
+        // 1) on the current save path if there is one
+        // 2) on the current directory if there is one
+        // 3) whatever default it has
+        let dir = self
+            .save_path
+            .as_ref()
+            .and_then(|p| p.parent().map(|v| v.to_path_buf()))
+            .or_else(|| std::env::current_dir().ok());
+        if let Some(path) = dir {
+            dlg = dlg.set_directory(path);
+        };
+
+        self.save_path = dlg.save_file();
     }
 
     fn save(&mut self) {
